@@ -5,7 +5,8 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
-import config  # Импортируем файл конфигурации
+import time
+import config
 
 
 class BotHandler:
@@ -35,6 +36,12 @@ class BotHandler:
         self.loop = asyncio.get_event_loop()
         self.loop.run_until_complete(self.init_db())
 
+        # Словарь для хранения времени последнего запроса пользователя
+        self.user_last_request_time = {}
+
+        # Время в секундах, которое должно пройти между запросами
+        self.REQUEST_INTERVAL = 3
+
     async def init_db(self):
         self.pool = await asyncpg.create_pool(
             user=config.POSTGRES_USER,
@@ -44,7 +51,25 @@ class BotHandler:
             port=config.POSTGRES_PORT
         )
 
+    async def check_request_interval(self, message: types.Message):
+        user_id = message.from_user.id
+        current_time = time.time()
+
+        # Проверка времени последнего запроса
+        if user_id in self.user_last_request_time:
+            last_request_time = self.user_last_request_time[user_id]
+            if current_time - last_request_time < self.REQUEST_INTERVAL:
+                await message.reply("Вы слишком часто нажимаете кнопку. Попробуйте позже.")
+                return False
+
+        # Обновление времени последнего запроса
+        self.user_last_request_time[user_id] = current_time
+        return True
+
     async def send_welcome(self, message: types.Message):
+        if not await self.check_request_interval(message):
+            return
+
         welcome_text = (
             "Я — бот Деньга. Помогу:\n"
             "1️⃣ Выбрать и оформить займ\n"
@@ -55,15 +80,27 @@ class BotHandler:
         await message.reply(welcome_text, reply_markup=self.keyboard)
 
     async def handle_loan(self, message: types.Message):
+        if not await self.check_request_interval(message):
+            return
+
         await message.reply("Вы выбрали: Хочу взять займ")
 
     async def handle_refinance(self, message: types.Message):
+        if not await self.check_request_interval(message):
+            return
+
         await message.reply("Вы выбрали: Хочу рефинансировать займ")
 
     async def handle_problem(self, message: types.Message):
+        if not await self.check_request_interval(message):
+            return
+
         await message.reply("Вы выбрали: Есть проблема или вопрос")
 
     async def handle_contact(self, message: types.Message):
+        if not await self.check_request_interval(message):
+            return
+
         contact = message.contact
         phone_number = contact.phone_number
         user_id = contact.user_id
