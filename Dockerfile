@@ -1,10 +1,12 @@
-FROM python:3.10-slim
+FROM python:3.9
 
 WORKDIR /app
-
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD ["python", "main_script.py"]
+COPY init.sql /docker-entrypoint-initdb.d/
+
+# запуска инициализации и приложения
+CMD ["sh", "-c", "psql -U $POSTGRES_USER -d $POSTGRES_DB -a -f /docker-entrypoint-initdb.d/init_db.sql && python main.py"]

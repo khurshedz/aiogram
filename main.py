@@ -1,13 +1,12 @@
 import logging
 import asyncio
-import asyncpg
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.utils import executor
 import time
 import config
-
+from database import DatabaseManager
 
 class BotHandler:
     def __init__(self):
@@ -32,24 +31,19 @@ class BotHandler:
                                          lambda message: message.text == "✏ Есть проблема или вопрос")
         self.dp.register_message_handler(self.handle_contact, content_types=types.ContentType.CONTACT)
 
-        # Инициализация подключения к базе данных
+        # Инициализация базы данных
+        self.db_manager = DatabaseManager()
         self.loop = asyncio.get_event_loop()
-        self.loop.run_until_complete(self.init_db())
+        self.loop.run_until_complete(self.init())
 
         # Словарь для хранения времени последнего запроса пользователя
         self.user_last_request_time = {}
 
         # Время в секундах, которое должно пройти между запросами
-        self.REQUEST_INTERVAL = 3
+        self.REQUEST_INTERVAL = 1
 
-    async def init_db(self):
-        self.pool = await asyncpg.create_pool(
-            user=config.POSTGRES_USER,
-            password=config.POSTGRES_PASSWORD,
-            database=config.POSTGRES_DB,
-            host=config.POSTGRES_HOST,
-            port=config.POSTGRES_PORT
-        )
+    async def init(self):
+        await self.db_manager.connect()
 
     async def check_request_interval(self, message: types.Message):
         user_id = message.from_user.id
@@ -112,11 +106,7 @@ class BotHandler:
             f"User ID: {user_id}, First Name: {first_name}, Last Name: {last_name}, Phone Number: {phone_number}")
 
         # Сохраняем контакт в базу данных
-        async with self.pool.acquire() as connection:
-            await connection.execute('''
-                INSERT INTO contacts (user_id, first_name, last_name, phone_number) VALUES ($1, $2, $3, $4)
-                ON CONFLICT (user_id) DO UPDATE SET phone_number = EXCLUDED.phone_number
-            ''', user_id, first_name, last_name, phone_number)
+        await self.db_manager.save_contact(user_id, first_name, last_name, phone_number)
 
         await message.reply("Спасибо за предоставленный номер телефона!")
 
@@ -130,7 +120,7 @@ if __name__ == '__main__':
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler("error.log"),
+            logging.FileHandler("./error.log"),
             logging.StreamHandler()
         ]
     )

@@ -15,7 +15,6 @@ services:
 
   bot:
     build: .
-    container_name: telegram_bot
     environment:
       - API_TOKEN=${API_TOKEN}
       - POSTGRES_USER=${POSTGRES_USER}
