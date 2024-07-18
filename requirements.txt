@@ -1,0 +1,7 @@
+aiogram==2.25.2
+asyncpg==0.25.0
+sqlalchemy==1.4.22
+sqlalchemy[asyncio]==1.4.22
+pandas==1.4.3
+numpy==1.22.3
+dask==2022.2.0
