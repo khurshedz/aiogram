@@ -8,4 +8,4 @@ COPY . .
 
 COPY init_db.sql /docker-entrypoint-initdb.d/
 
-CMD ["python", "main.py"]
+CMD ["python", "main_script.py"]

@@ -1,6 +1,7 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup
 class Keyboards:
     def __init__(self):
+        self.inline_kb = InlineKeyboardMarkup(row_width=4)
         self.button_loan = KeyboardButton('📋 Хочу взять займ')
         self.button_refinance = KeyboardButton('✂ Хочу рефинансировать займ')
         self.button_problem = KeyboardButton('✏ Есть проблема или вопрос')

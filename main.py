@@ -10,7 +10,7 @@ from handlers import Handlers
 
 class BotHandler:
     def __init__(self):
-        self.bot = Bot(token=config.API_TOKEN)
+        self.bot = Bot(token=config.TELEGRAM_API_TOKEN)
         self.dp = Dispatcher(self.bot)
         self.dp.middleware.setup(LoggingMiddleware())
 
