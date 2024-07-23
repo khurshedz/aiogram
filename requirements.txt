@@ -2,4 +2,3 @@ aiogram==2.25.2
 asyncpg==0.25.0
 sqlalchemy==1.4.22
 sqlalchemy[asyncio]==1.4.22
-python-dotenv==1.0.1
