@@ -29,4 +29,3 @@ class DatabaseManager:
             logging.info(f"Saved contact for user {user_id}")
         except Exception as e:
             logging.error(f"Error saving contact: {e}")
-
