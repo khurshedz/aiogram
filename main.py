@@ -8,6 +8,7 @@ from database import DatabaseManager
 from keyboards import Keyboards
 from handlers import Handlers
 
+
 class BotHandler:
     def __init__(self):
         self.bot = Bot(token=config.TELEGRAM_API_TOKEN)
@@ -28,6 +29,7 @@ class BotHandler:
 
     def run(self):
         executor.start_polling(self.dp, skip_updates=True)
+
 
 if __name__ == '__main__':
     # Инициализация логирования

@@ -1,26 +1,25 @@
 version: '3.8'
 
 services:
-  postgres:
+  postgres_db:
     image: postgres:15
-    container_name: postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+    restart: always
+    hostname: db_postgres
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init_db.sql
-    restart: on-failure
-  bot:
+  telegram_bot:
     build: .
+    user: ${CURRENT_UID}
     env_file:
       - .env
-    container_name: telegram_bot
+    hostname: telegram_bot
     depends_on:
-      - postgres
+      - postgres_db
     restart: on-failure
 
 volumes:
